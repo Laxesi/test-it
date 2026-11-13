@@ -1,5 +1,7 @@
 # Dutertre Alexis
 
+Etudiant disposant d'un 1/3 temps
+
 # Test It - Prêt de livres
 
 API REST Spring Boot (Java 25) de prêt de livres pour une bibliothèque.
