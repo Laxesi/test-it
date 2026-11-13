@@ -2,6 +2,8 @@ package com.example.testit.service;
 
 import com.example.testit.adapter.mail.MailService;
 import com.example.testit.model.Book;
+import com.example.testit.model.Member;
+import com.example.testit.model.Status;
 import com.example.testit.repository.BookRepository;
 import com.example.testit.repository.MemberRepository;
 import org.assertj.core.api.Assertions;
@@ -46,35 +48,58 @@ class BookServiceTest {
         List<Book> result = bookService.findAll();
 
         //then
-        Assertions.assertThat(result).contains(booka, bookb);
+        Assertions.assertThat(result).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(attendue);
     }
 
     @Test
-    void findById() {
+    void RetournerLeLivreDUnIdExistant() {
         //given
         Book book = new Book();
-        book.setTitle("RetournerLaListeDesLivres c");
+        book.setTitle("RetournerLeLivreDUnIdExistant c");
         book.setAuthor("Dutertre Alexis");
         bookRepository.save(book);
-        List<Book> attendue = List.of(book);
 
         //when
-        Optional<Book> result = bookService.findById(book);
+        Optional<Book> result = bookService.findById(book.getId());
 
         //then
-        Assertions.assertThat(result).contains(booka, bookb);
+        Assertions.assertThat(result).isPresent();
+        Assertions.assertThat(result.get()).usingRecursiveComparison().isEqualTo(book);
     }
 
     @Test
-    void findByMemberId() {
+    void RetournerLeLivreDUnIdInexistant() {
+        //given
+
+        //when
+        Optional<Book> result = bookService.findById(999L);
+
+        //then
+        Assertions.assertThat(result).isEmpty();
     }
 
     @Test
-    void createBook() {
+    void RetournerLesLivresParLeMembre() {
+        //given
+        Book book = new Book();
+        book.setTitle("RetournerLesLivresParLeMembre d");
+        book.setAuthor("Dutertre Alexis");
+        bookRepository.save(book);
+        Member member = new Member();
+        member.setUsername("user d");
+        member.setBooks(List.of(book));
+        memberRepository.save(member);
+
+        //when
+        List<Book> result = bookService.findByMemberId(member.getId());
+
+        //then
+        Assertions.assertThat(result).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(List.of(book));
     }
 
     @Test
     void updateBook() {
+
     }
 
     @Test
@@ -82,7 +107,27 @@ class BookServiceTest {
     }
 
     @Test
-    void borrowBook() {
+    void unmprinterUnLivreDisponible() {
+        //given
+        Book book = new Book();
+        book.setTitle("RetournerLeLivreDUnIdExistant c");
+        book.setAuthor("Dutertre Alexis");
+        bookRepository.save(book);
+        Member member = new Member();
+        member.setUsername("user d");
+        memberRepository.save(member);
+
+        //when
+        bookService.borrowBook(book.getId(), member.getId());
+
+        //then
+        Book bookAttendue = new Book();
+        bookAttendue = book;
+        bookAttendue.setStatus(Status.EMPRUNTE);
+        bookAttendue.setBorrower(member);
+        Optional<Book> byId = bookService.findById(book.getId());
+
+        Assertions.assertThat(byId.get()).usingRecursiveComparison().isEqualTo(bookAttendue);
     }
 
     @Test
